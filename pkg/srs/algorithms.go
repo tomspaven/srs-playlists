@@ -5,15 +5,20 @@ import (
 	"time"
 )
 
-const ALGORITHM_LEITNER string = "LEITNER"
+const AlgorithmLeitner string = "LEITNER"
+const initialEaseFactor EaseFactor = 1.0
+
+type nextVals struct {
+	due      time.Time
+	interval time.Duration
+}
 
 type algorithm interface {
-	calculateDue(card Card, ease EaseFactor) (due time.Time, err error)
-	calculateInterval(card Card, ease EaseFactor) (interval time.Duration, err error)
+	calculateNext(card Card, ease EaseFactor) (nextVals, error)
 }
 
 func getSRSInstance(algorithm string) algorithm {
-	if algorithm == ALGORITHM_LEITNER {
+	if algorithm == AlgorithmLeitner {
 		return &normalisedLeitner{}
 	}
 	return &unknownAlgorithm{}
@@ -21,9 +26,9 @@ func getSRSInstance(algorithm string) algorithm {
 
 type unknownAlgorithm struct{}
 
-func (u *unknownAlgorithm) calculateDue(card Card, ease EaseFactor) (due time.Time, err error) {
-	return time.Time{}, fmt.Errorf("unknownAlgorithm: Not Implemented")
-}
-func (u *unknownAlgorithm) calculateInterval(card Card, ease EaseFactor) (interval time.Duration, err error) {
-	return 0, fmt.Errorf("unknownAlgorithm: Not Implmented")
+func (u *unknownAlgorithm) calculateNext(card Card, ease EaseFactor) (nextVals, error) {
+	return nextVals{
+		due:      time.Time{},
+		interval: 0,
+	}, fmt.Errorf("unknownAlgorithm: Not Implemented")
 }

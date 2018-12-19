@@ -17,9 +17,9 @@ type cardMeta struct {
 
 type Card struct {
 	gorm.Model
-	Data     string
-	metaData cardMeta
-	alg      algorithm
+	FrontData string
+	metaData  cardMeta
+	alg       algorithm
 }
 
 func (c *Card) DueDate() time.Time {
@@ -30,17 +30,15 @@ func (c *Card) Interval() time.Duration {
 	return c.metaData.interval
 }
 
-func NewCard(algorithm string) (*Card, error) {
+func NewCard(data string, algorithm string) (*Card, error) {
 	retCard := &Card{
+		FrontData: data,
 		metaData: cardMeta{
 			dateAdded: time.Now(),
 		},
 		alg: getSRSInstance(algorithm),
 	}
-	if err := retCard.updateDue(1); err != nil {
-		return nil, err
-	}
-	if err := retCard.updateInterval(1); err != nil {
+	if err := retCard.updateNextData(initialEaseFactor); err != nil {
 		return nil, err
 	}
 	return retCard, nil
@@ -49,30 +47,20 @@ func NewCard(algorithm string) (*Card, error) {
 func (c *Card) UpdateCard(ease EaseFactor) error {
 	c.metaData.latestReview = time.Now()
 	c.metaData.numberReviews++
-	if err := c.updateDue(ease); err != nil {
-		return err
-	}
-
-	if err := c.updateInterval(ease); err != nil {
+	if err := c.updateNextData(ease); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Card) updateDue(ease EaseFactor) error {
+func (c *Card) updateNextData(ease EaseFactor) error {
 	var err error
-	c.metaData.due, err = c.alg.calculateDue(*c, ease)
-	if err != nil {
+	var next nextVals
+	if next, err = c.alg.calculateNext(*c, ease); err != nil {
 		return err
 	}
-	return nil
-}
 
-func (c *Card) updateInterval(ease EaseFactor) error {
-	var err error
-	c.metaData.interval, err = c.alg.calculateInterval(*c, ease)
-	if err != nil {
-		return err
-	}
+	c.metaData.interval = next.interval
+	c.metaData.due = next.due
 	return nil
 }

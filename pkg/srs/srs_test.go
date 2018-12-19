@@ -8,7 +8,7 @@ import (
 func GetCardsDueNow_test(t *testing.T) {
 	_ = &srs.SRS{
 		Cfg: srs.SRSConfig{
-			Algorithm: srs.ALGORITHM_LEITNER,
+			Algorithm: srs.AlgorithmLeitner,
 		},
 	}
 
