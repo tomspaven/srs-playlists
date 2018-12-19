@@ -7,6 +7,7 @@ import (
 
 const AlgorithmLeitner string = "LEITNER"
 const initialEaseFactor EaseFactor = 1.0
+const initialInterval time.Duration = 24 * time.Hour
 
 type nextVals struct {
 	due      time.Time
@@ -19,7 +20,7 @@ type algorithm interface {
 
 func getSRSInstance(algorithm string) algorithm {
 	if algorithm == AlgorithmLeitner {
-		return &normalisedLeitner{}
+		return &normalisedLeitner{initialInterval}
 	}
 	return &unknownAlgorithm{}
 }
